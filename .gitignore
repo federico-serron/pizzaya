@@ -1,0 +1,52 @@
+# Environment files (contains secrets)
+.env
+.env.*
+*.env
+.env.local
+.env.prod
+.env.*.local
+
+# Backups
+backups/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Node
+node_modules/
+dist/
+.vite/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Database files
+*.db
+*.sqlite3
+data/
+
+# Docker
+docker-compose.override.yml
+
+# OpenCode / Agents
+.opencode/
+opencode.json
+AGENTS.md
+.agent-skills/
+.codex/
+.windsurf/
+.cursor/

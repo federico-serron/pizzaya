@@ -1,0 +1,122 @@
+# ============================================================
+# PizzaYA — Production Docker Compose Override
+# ============================================================
+# Usage:
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up --build -d
+#
+# This file OVERRIDES the dev docker-compose.yml with production settings:
+#   - No source code volume mounts (containers are immutable)
+#   - Resource limits on all services
+#   - Nginx reverse proxy in front
+#   - Stricter restart policies
+#   - No debug/reload flags
+# ============================================================
+
+version: "3.9"
+
+services:
+  # ==========================================================
+  # PostgreSQL Database — production hardening
+  # ==========================================================
+  db:
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: "512M"
+        reservations:
+          cpus: "0.25"
+          memory: "128M"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ==========================================================
+  # FastAPI Backend — production mode
+  # ==========================================================
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: runtime
+    restart: unless-stopped
+    # No source volume mounts in production
+    volumes:
+      - backend_data:/app/data
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql+asyncpg://pizzaya:pizzaya_secret@db:5432/pizzaya}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_ALGORITHM: ${JWT_ALGORITHM:-HS256}
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-15}
+      REFRESH_TOKEN_EXPIRE_DAYS: ${REFRESH_TOKEN_EXPIRE_DAYS:-7}
+      DLOCALGO_API_KEY: ${DLOCALGO_API_KEY}
+      DLOCALGO_SECRET_KEY: ${DLOCALGO_SECRET_KEY}
+      DLOCALGO_BASE_URL: ${DLOCALGO_BASE_URL:-https://sandbox.dlocal.com}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost}
+      CORS_ORIGINS: ${CORS_ORIGINS:-["http://localhost"]}
+    # Production command: no reload, no debug
+    command: >
+      uvicorn app.main:app
+      --host 0.0.0.0
+      --port 8000
+      --workers 4
+      --proxy-headers
+      --forwarded-allow-ips '*'
+      --no-access-log
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: "512M"
+        reservations:
+          cpus: "0.5"
+          memory: "256M"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ==========================================================
+  # Frontend — Nginx serving static build (production)
+  # ==========================================================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: serve
+    restart: unless-stopped
+    # No source volume mounts — the nginx container has the built assets
+    volumes: []
+    environment: {}
+    # Remove Vite dev server command, use the Dockerfile's CMD (nginx)
+    command: []
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: "128M"
+        reservations:
+          cpus: "0.1"
+          memory: "64M"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+# ==========================================================
+# Additional named volumes
+# ==========================================================
+volumes:
+  postgres_data:
+    name: pizzaya-postgres-data
+  backend_data:
+    name: pizzaya-backend-data

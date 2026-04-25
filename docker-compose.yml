@@ -1,0 +1,126 @@
+# ============================================================
+# PizzaYA — Development Docker Compose
+# ============================================================
+# Usage:
+#   docker compose up --build          # start all services
+#   docker compose up --build -d       # start in detached mode
+#   docker compose down                # stop and remove containers
+#   docker compose exec backend bash   # shell into backend
+# ============================================================
+
+version: "3.9"
+
+services:
+  # ==========================================================
+  # PostgreSQL Database
+  # ==========================================================
+  db:
+    image: postgres:16-alpine
+    container_name: pizzaya-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-pizzaya}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-pizzaya_secret}
+      POSTGRES_DB: ${POSTGRES_DB:-pizzaya}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-pizzaya} -d ${POSTGRES_DB:-pizzaya}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - pizzaya-network
+
+  # ==========================================================
+  # FastAPI Backend
+  # ==========================================================
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: runtime
+    container_name: pizzaya-backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    volumes:
+      # Mount source code for hot reload during development
+      - ./backend:/app
+      # Exclude these from the bind mount to use container versions
+      - /app/__pycache__/
+      - /app/data/
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql+asyncpg://pizzaya:pizzaya_secret@db:5432/pizzaya}
+      JWT_SECRET: ${JWT_SECRET:-your-super-secret-key-change-in-production}
+      JWT_ALGORITHM: ${JWT_ALGORITHM:-HS256}
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-15}
+      REFRESH_TOKEN_EXPIRE_DAYS: ${REFRESH_TOKEN_EXPIRE_DAYS:-7}
+      DLOCALGO_API_KEY: ${DLOCALGO_API_KEY:-sandbox_api_key}
+      DLOCALGO_SECRET_KEY: ${DLOCALGO_SECRET_KEY:-sandbox_secret_key}
+      DLOCALGO_BASE_URL: ${DLOCALGO_BASE_URL:-https://sandbox.dlocal.com}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost}
+      CORS_ORIGINS: ${CORS_ORIGINS:-["http://localhost","http://localhost:80","http://localhost:5173"]}
+    depends_on:
+      db:
+        condition: service_healthy
+    command: >
+      uvicorn app.main:app
+      --host 0.0.0.0
+      --port 8000
+      --reload
+      --reload-dir /app/app
+      --proxy-headers
+      --forwarded-allow-ips '*'
+    networks:
+      - pizzaya-network
+
+  # ==========================================================
+  # React + Vite Frontend (development with hot reload)
+  # ==========================================================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: dev
+    container_name: pizzaya-frontend
+    restart: unless-stopped
+    ports:
+      - "5173:5173"
+    volumes:
+      # Mount source code for hot reload
+      - ./frontend/src:/app/src
+      - ./frontend/index.html:/app/index.html
+      - ./frontend/vite.config.ts:/app/vite.config.ts
+      - ./frontend/postcss.config.js:/app/postcss.config.js
+      - ./frontend/tailwind.config.js:/app/tailwind.config.js
+      - ./frontend/tsconfig.json:/app/tsconfig.json
+      - ./frontend/tsconfig.node.json:/app/tsconfig.node.json
+      - ./frontend/public:/app/public
+      # Exclude node_modules from bind mount (keep container version)
+      - /app/node_modules/
+    environment:
+      VITE_PROXY_TARGET: ${VITE_PROXY_TARGET:-http://backend:8000}
+      VITE_API_BASE_URL: /api
+    depends_on:
+      - backend
+    networks:
+      - pizzaya-network
+
+# ==========================================================
+# Named volumes
+# ==========================================================
+volumes:
+  postgres_data:
+    name: pizzaya-postgres-data
+
+# ==========================================================
+# Networks
+# ==========================================================
+networks:
+  pizzaya-network:
+    name: pizzaya-network
+    driver: bridge
