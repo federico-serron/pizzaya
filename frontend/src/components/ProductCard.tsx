@@ -58,24 +58,24 @@ export default function ProductCard({ product }: { product: ProductResponse }) {
   return (
     <div className="card-interactive group relative flex flex-col">
       <Link to={`/menu/${product.slug}`} className="block">
-        <div className={`relative h-40 sm:h-44 bg-gradient-to-br ${getBgColor(product.name)} flex items-center justify-center overflow-hidden`}>
-          <span className="text-5xl sm:text-6xl transition-transform duration-500 group-hover:scale-110 group-hover:rotate-6">
+        <div className={`relative h-32 sm:h-40 md:h-44 bg-gradient-to-br ${getBgColor(product.name)} flex items-center justify-center overflow-hidden`}>
+          <span className="text-[2.5rem] sm:text-5xl md:text-6xl transition-transform duration-500 group-hover:scale-110 group-hover:rotate-6">
             {getEmoji(product.name)}
           </span>
           {product.is_featured && (
-            <span className="absolute top-3 right-3 bg-gold-400 text-gold-900 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-lg">
+            <span className="absolute top-2 right-2 sm:top-3 sm:right-3 bg-gold-400 text-gold-900 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shadow-lg">
               <span className="text-xs">⭐</span> TOP
             </span>
           )}
           {!product.is_available && (
             <div className="absolute inset-0 bg-warm-950/60 backdrop-blur-[2px] flex items-center justify-center">
-              <span className="bg-warm-800 text-warm-200 text-xs font-semibold px-3 py-1.5 rounded-full">No disponible</span>
+              <span className="bg-warm-800 text-warm-200 text-[10px] sm:text-xs font-semibold px-2 sm:px-3 py-1 sm:py-1.5 rounded-full">No disponible</span>
             </div>
           )}
         </div>
       </Link>
 
-      <div className="p-4 flex flex-col flex-1">
+      <div className="p-3 sm:p-4 flex flex-col flex-1">
         <Link to={`/menu/${product.slug}`} className="block">
           <h3 className="font-semibold text-[var(--text-primary)] leading-snug group-hover:text-ember-600 dark:group-hover:text-ember-400 transition-colors line-clamp-1 text-sm sm:text-base">
             {product.name}
@@ -85,31 +85,31 @@ export default function ProductCard({ product }: { product: ProductResponse }) {
           )}
         </Link>
 
-        <div className="mt-auto pt-3 flex items-center justify-between">
+        <div className="mt-auto pt-2 sm:pt-3 flex items-center justify-between flex-wrap gap-2">
           <span className="font-display font-bold text-lg sm:text-xl text-ember-600 dark:text-ember-500">
             {price}
           </span>
 
           {isAuthenticated && product.is_available && (
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1 sm:gap-1.5">
               <button
                 onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                className="w-7 h-7 flex items-center justify-center rounded-lg bg-[var(--bg-tertiary)] hover:bg-[var(--border)] text-[var(--text-secondary)] transition-colors"
+                className="w-7 h-7 sm:w-7 sm:h-7 flex items-center justify-center rounded-lg bg-[var(--bg-tertiary)] hover:bg-[var(--border)] text-[var(--text-secondary)] transition-colors touch-target"
                 aria-label="Reducir cantidad"
               >
-                <Minus size={12} />
+                <Minus size={11} />
               </button>
               <span className="text-xs font-semibold w-5 text-center text-[var(--text-primary)]">{quantity}</span>
               <button
                 onClick={() => setQuantity(quantity + 1)}
-                className="w-7 h-7 flex items-center justify-center rounded-lg bg-[var(--bg-tertiary)] hover:bg-[var(--border)] text-[var(--text-secondary)] transition-colors"
+                className="w-7 h-7 sm:w-7 sm:h-7 flex items-center justify-center rounded-lg bg-[var(--bg-tertiary)] hover:bg-[var(--border)] text-[var(--text-secondary)] transition-colors touch-target"
                 aria-label="Aumentar cantidad"
               >
-                <Plus size={12} />
+                <Plus size={11} />
               </button>
               <button
                 onClick={handleAdd}
-                className="ml-1 w-8 h-8 flex items-center justify-center rounded-xl bg-ember-600 hover:bg-ember-700 text-white transition-all duration-200 active:scale-90 shadow-lg shadow-ember-600/30"
+                className="ml-1 w-9 h-9 sm:w-8 sm:h-8 flex items-center justify-center rounded-xl bg-ember-600 hover:bg-ember-700 text-white transition-all duration-200 active:scale-90 shadow-lg shadow-ember-600/30 touch-target"
                 aria-label="Agregar al carrito"
               >
                 <ShoppingCart size={14} />

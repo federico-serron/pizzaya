@@ -19,20 +19,20 @@ export default function DashboardPage() {
 
   return (
     <div className="animate-fade-up">
-      <h1 className="font-display font-bold text-2xl sm:text-3xl text-[var(--text-primary)] mb-2">Dashboard</h1>
-      <p className="text-[var(--text-secondary)] mb-8">Resumen del dia en PizzaYA</p>
+      <h1 className="font-display font-bold text-xl sm:text-2xl lg:text-3xl text-[var(--text-primary)] mb-2">Dashboard</h1>
+      <p className="text-[var(--text-secondary)] text-sm sm:text-base mb-6 sm:mb-8">Resumen del dia en PizzaYA</p>
 
       {isLoading ? <LoadingSpinner /> : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 stagger-children">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 stagger-children">
           {cards.map(({ label, value, icon: Icon, color, bg }, i) => (
-            <div key={i} className="card p-5 sm:p-6">
-              <div className="flex items-center justify-between mb-4">
-                <span className="text-xs font-semibold uppercase tracking-wider text-[var(--text-muted)]">{label}</span>
-                <div className={`w-10 h-10 ${bg} rounded-xl flex items-center justify-center`}>
-                  <Icon size={20} className={color} />
+            <div key={i} className="card p-4 sm:p-5 lg:p-6">
+              <div className="flex items-center justify-between mb-3 sm:mb-4">
+                <span className="text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-[var(--text-muted)]">{label}</span>
+                <div className={`w-9 h-9 sm:w-10 sm:h-10 ${bg} rounded-xl flex items-center justify-center`}>
+                  <Icon size={18} className={`sm:size-5 ${color}`} />
                 </div>
               </div>
-              <p className="font-display font-bold text-2xl sm:text-3xl text-[var(--text-primary)]">{value}</p>
+              <p className="font-display font-bold text-xl sm:text-2xl lg:text-3xl text-[var(--text-primary)]">{value}</p>
             </div>
           ))}
         </div>

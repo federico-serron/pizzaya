@@ -15,6 +15,7 @@ __pycache__/
 *.egg-info/
 .venv/
 venv/
+backend/venv/
 .pytest_cache/
 .ruff_cache/
 .mypy_cache/
@@ -50,3 +51,6 @@ AGENTS.md
 .codex/
 .windsurf/
 .cursor/
+
+
+.github
